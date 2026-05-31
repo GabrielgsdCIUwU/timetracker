@@ -1,0 +1,78 @@
+<!DOCTYPE strict html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoFlow - Advanced Time Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>ChronoFlow</h1>
+            </div>
+            <p>Master your time, effortlessly.</p>
+        </header>
+
+        <main>
+            <section class="create-section glass-panel">
+                <form id="create-task-form">
+                    <input type="text" id="task-name" placeholder="What are you working on?" required autocomplete="off">
+                    <button type="submit" class="btn-primary">Create Task</button>
+                </form>
+            </section>
+
+            <section class="tasks-section" id="tasks-container">
+                <!-- Las tareas se renderizarán aquí -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Template para la creación dinámica -->
+    <template id="task-template">
+        <div class="task-card glass-panel">
+            <div class="task-header">
+                <div class="task-info">
+                    <h2 class="task-title"></h2>
+                    <span class="task-status badge"></span>
+                </div>
+                <div class="task-actions">
+                    <div class="time-display total-time" title="Total time (Task + Subtasks)">00:00:00</div>
+                    <button class="btn-icon btn-start" title="Start">▶</button>
+                    <button class="btn-icon btn-pause hidden" title="Pause">⏸</button>
+                    <button class="btn-icon btn-stop" title="Complete">⏹</button>
+                    <button class="btn-icon btn-delete" title="Delete">🗑</button>
+                </div>
+            </div>
+            
+            <div class="subtasks-container">
+                <div class="subtasks-list"></div>
+                <form class="create-subtask-form">
+                    <input type="text" class="subtask-name" placeholder="Add a subtask..." required autocomplete="off">
+                    <button type="submit" class="btn-secondary">Add</button>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <template id="subtask-template">
+        <div class="subtask-item">
+            <div class="subtask-info">
+                <span class="subtask-title"></span>
+                <span class="subtask-status badge badge-small"></span>
+            </div>
+            <div class="subtask-actions">
+                <div class="time-display sub-time">00:00:00</div>
+                <button class="btn-icon btn-start btn-small" title="Start">▶</button>
+                <button class="btn-icon btn-pause btn-small hidden" title="Pause">⏸</button>
+                <button class="btn-icon btn-stop btn-small" title="Complete">⏹</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>
