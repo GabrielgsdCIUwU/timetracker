@@ -31,7 +31,20 @@
         </main>
     </div>
 
-    <!-- Template para la creación dinámica -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message">Are you sure?</p>
+            <div class="modal-actions">
+                <button id="modal-btn-cancel" class="btn-secondary">Cancel</button>
+                <button id="modal-btn-confirm" class="btn-primary btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates -->
     <template id="task-template">
         <div class="task-card glass-panel">
             <div class="task-header">
@@ -44,7 +57,7 @@
                     <button class="btn-icon btn-start" title="Start">▶</button>
                     <button class="btn-icon btn-pause hidden" title="Pause">⏸</button>
                     <button class="btn-icon btn-stop" title="Complete">⏹</button>
-                    <button class="btn-icon btn-delete" title="Delete">🗑</button>
+                    <button class="btn-icon btn-delete" title="Delete">🗑️</button>
                 </div>
             </div>
             
@@ -73,6 +86,6 @@
         </div>
     </template>
 
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
