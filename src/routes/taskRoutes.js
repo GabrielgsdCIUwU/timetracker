@@ -1,11 +1,13 @@
 import express from 'express';
 import TaskController from '../controllers/TaskController.js';
+import { validateResource } from '../middlewares/validateResource.js';
+import { addSubtaskSchema, createTaskSchema } from '../schemas/taskSchemas.js';
 
 const router = express.Router();
 
 router.get('/', TaskController.getTasks);
-router.post('/', TaskController.createTask);
-router.post('/:id/subtasks', TaskController.addSubtask);
+router.post('/', validateResource(createTaskSchema), TaskController.createTask);
+router.post('/:id/subtasks', validateResource(addSubtaskSchema), TaskController.addSubtask);
 router.delete('/:id', TaskController.deleteTask);
 
 // Tareas padre
