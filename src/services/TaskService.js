@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { NotFoundError, BadRequestError } from '../utils/error';
+import { NotFoundError, BadRequestError } from '../utils/error.js';
 
 export default class TaskService {
     constructor(taskRepository) {
