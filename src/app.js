@@ -3,6 +3,7 @@ import taskRoutes from './routes/taskRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,9 +18,6 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/tasks', taskRoutes);
 
 // Manejo de errores global
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Algo salió mal en el servidor.' });
-});
+app.use(errorHandler);
 
 export default app;
