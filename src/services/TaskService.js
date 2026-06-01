@@ -1,8 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
-
-// Make crypto available globally for uuid
-globalThis.crypto = crypto;
+import { NotFoundError, BadRequestError } from '../utils/error';
 
 export default class TaskService {
     constructor(taskRepository) {
@@ -31,7 +28,7 @@ export default class TaskService {
 
     async addSubtask(taskId, subtaskName) {
         const task = await this.repository.getTaskById(taskId);
-        if (!task) throw new Error('Task not found');
+        if (!task) throw new NotFoundError('Task not found');
 
         const newSubtask = {
             id: uuidv4(),
@@ -47,20 +44,20 @@ export default class TaskService {
 
     async startTimer(taskId, subtaskId = null) {
         const task = await this.repository.getTaskById(taskId);
-        if (!task) throw new Error('Task not found');
+        if (!task) throw new NotFoundError('Task not found');
 
         let target = task;
         if (subtaskId) {
             target = task.subtasks.find(s => s.id === subtaskId);
-            if (!target) throw new Error('Subtask not found');
+            if (!target) throw new NotFoundError('Subtask not found');
         }
 
         if (target.status === 'active') {
-            throw new Error('Timer is already active');
+            throw new BadRequestError('Timer is already active');
         }
 
         if (target.status === 'completed') {
-            throw new Error('Task is already completed');
+            throw new BadRequestError('Task is already completed');
         }
 
         // Add new time entry
@@ -76,16 +73,16 @@ export default class TaskService {
 
     async pauseTimer(taskId, subtaskId = null) {
         const task = await this.repository.getTaskById(taskId);
-        if (!task) throw new Error('Task not found');
+        if (!task) throw new NotFoundError('Task not found');
 
         let target = task;
         if (subtaskId) {
             target = task.subtasks.find(s => s.id === subtaskId);
-            if (!target) throw new Error('Subtask not found');
+            if (!target) throw new NotFoundError('Subtask not found');
         }
 
         if (target.status !== 'active') {
-            throw new Error('Timer is not active');
+            throw new BadRequestError('Timer is not active');
         }
 
         // Find the open time entry
@@ -101,12 +98,12 @@ export default class TaskService {
 
     async stopTimer(taskId, subtaskId = null) {
         const task = await this.repository.getTaskById(taskId);
-        if (!task) throw new Error('Task not found');
+        if (!task) throw new NotFoundError('Task not found');
 
         let target = task;
         if (subtaskId) {
             target = task.subtasks.find(s => s.id === subtaskId);
-            if (!target) throw new Error('Subtask not found');
+            if (!target) throw new NotFoundError('Subtask not found');
         }
 
         // If it was active, close the current entry
@@ -152,7 +149,7 @@ export default class TaskService {
 
     async deleteTask(taskId) {
         const task = await this.repository.getTaskById(taskId);
-        if (!task) throw new Error('Task not found');
+        if (!task) throw new NotFoundError('Task not found');
         await this.repository.deleteTask(taskId);
         return task;
     }
