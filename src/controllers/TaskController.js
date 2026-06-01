@@ -1,111 +1,58 @@
 import TaskService from '../services/TaskService.js';
 import JsonTaskRepository from '../repositories/JsonTaskRepository.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 const taskRepository = new JsonTaskRepository();
 const taskService = new TaskService(taskRepository);
 
 export default class TaskController {
-    static async getTasks(req, res) {
-        try {
-            const tasks = await taskService.getAllTasks();
-            res.json(tasks);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
+    static getTasks = asyncHandler(async (req, res) => {
+        const tasks = await taskService.getAllTasks();
+        res.json(tasks);
+    });
 
-    static async createTask(req, res) {
-        try {
-            const { name } = req.body;
-            if (!name) return res.status(400).json({ error: 'Name is required' });
-            
-            const task = await taskService.createTask(name);
-            res.status(201).json(task);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
+    static createTask = asyncHandler(async (req, res) => {
+        const task = await taskService.createTask(req.body.name);
+        res.status(201).json(task);
+    });
 
-    static async addSubtask(req, res) {
-        try {
-            const { id } = req.params;
-            const { name } = req.body;
-            if (!name) return res.status(400).json({ error: 'Name is required' });
+    static addSubtask = asyncHandler(async (req, res) => {
+        const subtask = await taskService.addSubtask(req.params.id, req.body.name);
+        res.status(201).json(subtask);
+    });
 
-            const subtask = await taskService.addSubtask(id, name);
-            res.status(201).json(subtask);
-        } catch (error) {
-            res.status(404).json({ error: error.message });
-        }
-    }
+    static startTask = asyncHandler(async (req, res) => {
+        const target = await taskService.startTimer(req.params.id);
+        res.json(target);
+    });
 
-    static async startTask(req, res) {
-        try {
-            const { id } = req.params;
-            const target = await taskService.startTimer(id);
-            res.json(target);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
+    static pauseTask = asyncHandler(async (req, res) => {
+        const target = await taskService.pauseTimer(req.params.id);
+        res.json(target);
+    });
 
-    static async pauseTask(req, res) {
-        try {
-            const { id } = req.params;
-            const target = await taskService.pauseTimer(id);
-            res.json(target);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
+    static stopTask = asyncHandler(async (req, res) => {
+        const target = await taskService.stopTimer(req.params.id);
+        res.json(target);
+    });
 
-    static async stopTask(req, res) {
-        try {
-            const { id } = req.params;
-            const target = await taskService.stopTimer(id);
-            res.json(target);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
+    static startSubtask = asyncHandler(async (req, res) => {
+        const target = await taskService.startTimer(req.params.id, req.params.subtaskId);
+        res.json(target);
+    });
 
-    static async startSubtask(req, res) {
-        try {
-            const { id, subtaskId } = req.params;
-            const target = await taskService.startTimer(id, subtaskId);
-            res.json(target);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
+    static pauseSubtask = asyncHandler(async (req, res) => {
+        const target = await taskService.pauseTimer(req.params.id, req.params.subtaskId);
+        res.json(target);
+    });
 
-    static async pauseSubtask(req, res) {
-        try {
-            const { id, subtaskId } = req.params;
-            const target = await taskService.pauseTimer(id, subtaskId);
-            res.json(target);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
+    static stopSubtask = asyncHandler(async (req, res) => {
+        const target = await taskService.stopTimer(req.params.id, req.params.subtaskId);
+        res.json(target);
+    });
 
-    static async stopSubtask(req, res) {
-        try {
-            const { id, subtaskId } = req.params;
-            const target = await taskService.stopTimer(id, subtaskId);
-            res.json(target);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
-
-    static async deleteTask(req, res) {
-        try {
-            const { id } = req.params;
-            await taskService.deleteTask(id);
-            res.json({ message: 'Task deleted successfully' });
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
+    static deleteTask = asyncHandler(async (req, res) => {
+        await taskService.deleteTask(req.params.id);
+        res.json({ message: 'Task deleted successfully' });
+    });
 }
