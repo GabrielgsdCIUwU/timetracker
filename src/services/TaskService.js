@@ -14,16 +14,28 @@ export default class TaskService {
         return tasks.map(task => this._enrichTaskWithCalculatedTime(task));
     }
 
-    async createTask(name) {
+    async createTask(name, tags = []) {
         const newTask = {
             id: uuidv4(),
             name,
+            tags,
             status: 'pending', // pending, active, paused, completed
             timeEntries: [],
             subtasks: []
         };
         await this.repository.saveTask(newTask);
         return newTask;
+    }
+
+    async updateTask(taskId, updateData) {
+        const task = await this.repository.getTaskById(taskId);
+        if (!task) throw new NotFoundError('Task not found');
+
+        if (updateData.name) task.name = updateData.name;
+        if (updateData.tags) task.tags = updateData.tags;
+
+        await this.repository.saveTask(task);
+        return task;
     }
 
     async addSubtask(taskId, subtaskName) {
@@ -40,6 +52,33 @@ export default class TaskService {
         task.subtasks.push(newSubtask);
         await this.repository.saveTask(task);
         return newSubtask;
+    }
+
+    async updateSubtask(taskId, subtaskId, updateData) {
+        const task = await this.repository.getTaskById(taskId);
+        if (!task) throw new NotFoundError('Task not found');
+
+        const subtask = task.subtasks.find(s => s.id === subtaskId);
+        if (!subtask) throw new NotFoundError('Subtask not found');
+
+        if (updateData.name) subtask.name = updateData.name;
+
+        await this.repository.saveTask(task);
+        return subtask;
+    }
+
+    async deleteSubtask(taskId, subtaskId) {
+        const task = await this.repository.getTaskById(taskId);
+        if (!task) throw new NotFoundError('Task not found');
+        const initialLength = task.subtasks.length;
+        task.subtasks = task.subtasks.filter(s => s.id !== subtaskId);
+
+        if (task.subtasks.length === initialLength) {
+            throw new NotFoundError('Subtask not found');
+        }
+
+        await this.repository.saveTask(task);
+        return task;
     }
 
     async startTimer(taskId, subtaskId = null) {
@@ -96,6 +135,25 @@ export default class TaskService {
         return target;
     }
 
+    async reopenTimer(taskId, subtaskId = null) {
+        const task = await this.repository.getTaskById(taskId);
+        if (!task) throw new NotFoundError('Task not found');
+
+        let target = task;
+        if (subtaskId) {
+            target = task.subtasks.find(s => s.id === subtaskId);
+            if (!target) throw new NotFoundError('Subtask not found');
+        }
+
+        if (target.status !== 'completed') {
+            throw new BadRequestError('Only completed tasks can reopen');
+        }
+
+        target.status = 'paused';
+        await this.repository.saveTask(task);
+        return target;
+    }
+
     async stopTimer(taskId, subtaskId = null) {
         const task = await this.repository.getTaskById(taskId);
         if (!task) throw new NotFoundError('Task not found');
@@ -115,6 +173,21 @@ export default class TaskService {
         }
 
         target.status = 'completed';
+        await this.repository.saveTask(task);
+        return target;
+    }
+
+    async addManualTime(taskId, subtaskId, start, end) {
+        const task = await this.repository.getTaskById(taskId);
+        if (!task) throw new NotFoundError('Task not found');
+
+        let target = task;
+        if (subtaskId) {
+            target = task.subtasks.find(s => s.id === subtaskId);
+            if (!target) throw new NotFoundError('Subtask not found');
+        }
+
+        target.timeEntries.push({ start, end });
         await this.repository.saveTask(task);
         return target;
     }
