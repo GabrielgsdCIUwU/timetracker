@@ -9,6 +9,14 @@ export const createTaskSchema = z.object({
     })
 });
 
+export const updateTaskSchema = z.object({
+    params: z.object({ id: z.uuid('Invalid ID')}),
+    body: z.object({
+        name: z.string().min(3).max(100).optional(),
+        tags: z.array(z.string()).optional()
+    })
+});
+
 export const addSubtaskSchema = z.object({
     params: z.object({
         id: z.uuid('Invalid task ID')
