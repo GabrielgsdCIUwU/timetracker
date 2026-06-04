@@ -6,13 +6,13 @@ export const fetchTasks = async () => {
     return response.json();
 };
 
-export const createTask = async (name) => {
+export const createTask = async (data) => {
     const response = await fetch(API_URL, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ data })
     });
-    if (!response.ok) throw new Error('Failed to create task');
+    if (!response.ok) throw new Error(response.json().error || 'Failed to create task');
 };
 
 export const updateTask = async (taskId, data) => {
