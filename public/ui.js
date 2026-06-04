@@ -1,15 +1,46 @@
 export const showToast = (message, type = 'info') => {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    const borderColors = {
+        success: 'border-emerald-500',
+        error: 'border-rose-500',
+        info: 'border-blue-500',
+    };
+    toast.className = `bg-slate-800 border-l-4 ${borderColors[type]} text-white px-4 py-3 rounded shadow-lg transform transition-all duration-300 translate-x-full`;
     toast.textContent = message;
     
     container.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
     
     setTimeout(() => {
-        toast.classList.add('fade-out');
-        toast.addEventListener('animationend', () => toast.remove());
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
     }, 3000);
+};
+
+export const showDynamicModal = (title, bodyHTML, onConfirm, confirmText = 'Confirm', isDanger = false) => {
+    const modal = document.getElementById('dynamic-modal');
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = bodyHTML;
+
+    const confirmButton = document.getElementById('modal-btn-confirm');
+    const cancelButton = document.getElementById('modal-btn-cancel');
+
+    confirmButton.className =  `px-4 py-2 rounded-lg transition-colors ${isDanger ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'}`;
+
+    const closeModal = () => modal.classList.add('hidden');
+
+    const cloneConfirmButton = confirmButton.cloneNode(true);
+    confirmButton.parentNode.replaceChild(cloneConfirmButton, confirmButton);
+
+    cloneConfirmButton.onclick = () => {
+        onConfirm(document.getElementById('modal-body'));
+        closeModal();
+    };
+
+    cancelButton.onclick = closeModal;
+    modal.classList.remove('hidden');
 };
 
 export const showConfirmModal = (title, message, onConfirm) => {
@@ -50,12 +81,8 @@ export const renderTasks = (tasksData, callbacks) => {
         if (existingNode) {
             updateTaskNodeData(existingNode, task, callbacks);
         } else {
-            const newNode = createTaskElement(task, index, callbacks);
-            if (index === 0) container.prepend(newNode);
-            else {
-                const prevId = `task-card-${tasksData[index-1].id}`;
-                document.getElementById(prevId).after(newNode);
-            }
+            const newNode = createTaskElement(task, callbacks);
+            container.appendChild(newNode);
         }
     });
 };
@@ -83,57 +110,75 @@ const updateTaskNodeData = (node, task, callbacks) => {
     node.querySelector('.task-title').textContent = task.name;
     
     const badge = node.querySelector('.task-status');
-    badge.className = `task-status badge ${task.status}`;
+    badge.className = `task-status text-xs px-2 py-1 rounded-full uppercase tracking-wider font-bold ${getStatusColor(task.status)}`;
     badge.textContent = task.status;
 
+    const tagsContainer = node.querySelector('.task-tags');
+    tagsContainer.innerHTML = task.tags?.map(tag => 
+    `<span class="bg-indigo-900/30 text-indigo-300 text-xs px-2 py-1 rounded-md border border-indigo-500/30">#${tag}</span>`
+    ).join('') || '';
+
+    setupActionbuttons(node, task, callbacks, false);
+
+    const subtasksList = node.querySelector('.subtasks-list');
+    subtasksList.innerHTML = '';
+
+    task.subtasks.forEach(subtask => {
+        const subtaskTemplate = document.getElementById('subtask-template').content.cloneNode(true);
+        subtaskTemplate.querySelector('.subtask-title').textContent = subtask.name;
+        subtaskTemplate.querySelector('.sub-time').id = `time-sub-${subtask.id}`;
+
+        const subtaskBadge = subtaskTemplate.querySelector('.subtask-status');
+        subtaskBadge.className = `subtask-status text-[10px] px-2 py-0.5 rounded-full uppercase font-bold ${getStatusColor(subtask.status)}`;
+        subtaskBadge.textContent = subtask.status;
+
+        setupActionbuttons(subtaskTemplate, subtask, callbacks, true, task.id);
+        subtasksList.appendChild(subtaskTemplate);
+    });
+};
+
+const setupActionbuttons = (node, entity, callbacks, isSubtask, parentId = null) => {
     const btnStart = node.querySelector('.btn-start');
     const btnPause = node.querySelector('.btn-pause');
     const btnStop = node.querySelector('.btn-stop');
+    const btnReopen = node.querySelector('.btn-reopen');
     const btnDelete = node.querySelector('.btn-delete');
-    
-    btnStart.classList.toggle('hidden', task.status === 'active' || task.status === 'completed');
-    btnPause.classList.toggle('hidden', task.status !== 'active');
-    
-    const isCompleted = task.status === 'completed';
-    btnStart.disabled = isCompleted;
-    btnStop.disabled = isCompleted;
-    btnStart.style.opacity = isCompleted ? '0.5' : '1';
-    btnStop.style.opacity = isCompleted ? '0.5' : '1';
+    const btnAddTime = node.querySelector('.btn-add-time');
 
-    btnStart.onclick = () => callbacks.onToggleTask(task.id, 'start');
-    btnPause.onclick = () => callbacks.onToggleTask(task.id, 'pause');
-    btnStop.onclick = () => callbacks.onToggleTask(task.id, 'stop');
-    btnDelete.onclick = () => callbacks.onDeleteTask(task.id);
+    const isCompleted = entity.status === 'completed';
+    const isActive = entity.status === 'active';
 
-    const subtasksList = node.querySelector('.subtasks-list');
-    subtasksList.innerHTML = ''; 
-    
-    task.subtasks.forEach(subtask => {
-        const subTpl = document.getElementById('subtask-template').content.cloneNode(true);
-        subTpl.querySelector('.subtask-title').textContent = subtask.name;
-        subTpl.querySelector('.sub-time').id = `time-sub-${subtask.id}`;
-        
-        const subBadge = subTpl.querySelector('.subtask-status');
-        subBadge.className = `subtask-status badge badge-small ${subtask.status}`;
-        subBadge.textContent = subtask.status;
+    btnStart.classList.toggle('hidden', isActive || isCompleted);
+    btnPause.classList.toggle('hidden', !isActive);
+    btnStop.classList.toggle('hidden', isCompleted);
+    btnReopen.classList.toggle('hidden', !isCompleted);
 
-        const sBtnStart = subTpl.querySelector('.btn-start');
-        const sBtnPause = subTpl.querySelector('.btn-pause');
-        const sBtnStop = subTpl.querySelector('.btn-stop');
+    const toggle = (action) => isSubtask 
+        ? callbacks.onToggleSubtask(parentId, entity.id, action)
+        : callbacks.onToggleTask(entity.id, action);
 
-        sBtnStart.classList.toggle('hidden', subtask.status === 'active' || subtask.status === 'completed');
-        sBtnPause.classList.toggle('hidden', subtask.status !== 'active');
-        
-        const isSubCompleted = subtask.status === 'completed';
-        sBtnStart.disabled = isSubCompleted;
-        sBtnStop.disabled = isSubCompleted;
-        sBtnStart.style.opacity = isSubCompleted ? '0.5' : '1';
-        sBtnStop.style.opacity = isSubCompleted ? '0.5' : '1';
+    btnStart.onclick = () => toggle('start');
+    btnPause.onclick = () => toggle('pause');
+    btnStop.onclick = () => toggle('stop');
+    btnReopen.onclick = () => toggle('reopen');
 
-        sBtnStart.onclick = () => callbacks.onToggleSubtask(task.id, subtask.id, 'start');
-        sBtnPause.onclick = () => callbacks.onToggleSubtask(task.id, subtask.id, 'pause');
-        sBtnStop.onclick = () => callbacks.onToggleSubtask(task.id, subtask.id, 'stop');
+    if (btnDelete) {
+        btnDelete.onclick = () => isSubtask 
+            ? callbacks.onDeleteSubtask(parentId, entity.id)
+            : callbacks.onDeleteTask(entity.id);
+    }
 
-        subtasksList.appendChild(subTpl);
-    });
+    if (btnAddTime && !isSubtask) {
+        btnAddTime.onclick = () => callbacks.onAddManualTime(entity.id);
+    }
+}
+
+const getStatusColor = (status) => {
+    const colors = {
+        pending: 'bg-slate-700 text-slate-300',
+        active: 'bg-emerald-900/50 text-emerald-400',
+        paused: 'bg-amber-900/50 text-amber-400',
+        completed: 'bg-indigo-900/50 text-indigo-400'
+    };
+    return colors[status] || colors.pending;
 };
