@@ -54,14 +54,37 @@
     </template>
 
     <template id="tpl-modal-manual-time">
-        <div class="flex flex-col gap-4 text-left">
+        <!-- Selector de Modo (Tabs) -->
+        <div class="flex bg-slate-900 rounded-lg p-1 mb-5">
+            <button type="button" class="tab-btn active flex-1 py-1.5 text-sm font-medium rounded-md bg-slate-700 text-white transition-all" data-target="duration">
+                Duration
+            </button>
+            <button type="button" class="tab-btn flex-1 py-1.5 text-sm font-medium rounded-md text-slate-400 hover:text-white transition-all" data-target="range">
+                Date Range
+            </button>
+        </div>
+
+        <!-- Mode 1: Duration -->
+        <div id="mode-duration" class="flex gap-4 text-left animate-fade-in-down">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-slate-400 mb-1">Hours</label>
+                <input type="number" min="0" value="0" class="manual-hours w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-slate-400 mb-1">Minutes</label>
+                <input type="number" min="0" max="59" value="30" class="manual-minutes w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+        </div>
+
+        <!-- Mode 2: Date range -->
+        <div id="mode-range" class="hidden flex flex-col gap-4 text-left animate-fade-in-down">
             <div>
                 <label class="block text-sm font-medium text-slate-400 mb-1">Start Time</label>
-                <input type="datetime-local" class="manual-start w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 [color-scheme:dark]">
+                <input type="datetime-local" class="manual-start w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 [color-scheme:dark]">
             </div>
             <div>
                 <label class="block text-sm font-medium text-slate-400 mb-1">End Time</label>
-                <input type="datetime-local" class="manual-end w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 [color-scheme:dark]">
+                <input type="datetime-local" class="manual-end w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 [color-scheme:dark]">
             </div>
         </div>
     </template>
