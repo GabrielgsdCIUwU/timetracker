@@ -1,40 +1,73 @@
-const API_URL = '/api/tasks';
+export class ApiClient {
+    static #BASE_URL = '/api/tasks';
 
-export const fetchTasks = async () => {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Failed to fetch tasks');
-    return response.json();
-};
+    static async #handleResponse(response) {
+        if (!response.ok) {
+            let errorMessage = 'Request failed';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) { }
+            throw new Error(errorMessage);
+        }
 
-export const createTask = async (name) => {
-    const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name })
-    });
-    if (!response.ok) throw new Error('Failed to create task');
-};
+        const text = await response.text();
+        return text ? JSON.parse(text) : null;
+    }
 
-export const createSubtask = async (taskId, name) => {
-    const response = await fetch(`${API_URL}/${taskId}/subtasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-    });
-    if (!response.ok) throw new Error('Failed to create subtask');
-};
+    static async #request(endpoint = '', method = 'GET', body = null) {
+        const options = { method, headers: {} };
 
-export const toggleTaskStatus = async (taskId, action) => {
-    const response = await fetch(`${API_URL}/${taskId}/${action}`, { method: 'POST' });
-    if (!response.ok) throw new Error(`Failed to ${action} task`);
-};
+        if (body) {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(body);
+        }
 
-export const toggleSubtaskStatus = async (taskId, subtaskId, action) => {
-    const response = await fetch(`${API_URL}/${taskId}/subtasks/${subtaskId}/${action}`, { method: 'POST' });
-    if (!response.ok) throw new Error(`Failed to ${action} subtask`);
-};
+        const response = await fetch(`${this.#BASE_URL}${endpoint}`, options);
+        return this.#handleResponse(response);
+    }
 
-export const deleteTask = async (taskId) => {
-    const response = await fetch(`${API_URL}/${taskId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Failed to delete task');
-};
+    static fetchTasks() {
+        return this.#request();
+    }
+
+    static createTask(data) {
+        return this.#request('', 'POST', data);
+    }
+
+    static updateTask(taskId, data) {
+        return this.#request(`/${taskId}`, 'PUT', data);
+    }
+
+    static createSubtask(taskId, name) {
+        return this.#request(`/${taskId}/subtasks`, 'POST', { name });
+    }
+
+    static updateSubtask(taskId, subtaskId, data) {
+        return this.#request(`/${taskId}/subtasks/${subtaskId}`, 'PUT', data);
+    }
+
+    static deleteSubtask(taskId, subtaskId) {
+        return this.#request(`/${taskId}/subtasks/${subtaskId}`, 'DELETE');
+    }
+
+    static toggleTaskStatus(taskId, action) {
+        return this.#request(`/${taskId}/${action}`, 'POST');
+    }
+
+    static toggleSubtaskStatus(taskId, subtaskId, action) {
+        return this.#request(`/${taskId}/subtasks/${subtaskId}/${action}`, 'POST');
+    }
+
+    static deleteTask(taskId) {
+        return this.#request(`/${taskId}`, 'DELETE');
+    }
+
+    static addManualTime(taskId, subtaskId, start, end) {
+        const endpoint = subtaskId
+            ? `/${taskId}/subtasks/${subtaskId}/time-entries`
+            : `/${taskId}/time-entries`;
+
+        return this.#request(endpoint, 'POST', { start, end });
+    }
+}
