@@ -27,6 +27,16 @@ export const addSubtaskSchema = z.object({
     })
 });
 
+export const updateSubtaskSchema = z.object({
+    params: z.object({
+        id: z.uuid('Invalid task ID'),
+        subtaskId: z.uuid('Invalid subtask ID')
+    }),
+    body: z.object({
+        name: z.string().min(3).max(100).optional()
+    })
+});
+
 export const manualTimeSchema = z.object({
     params: z.object({
         id: z.uuid(),
