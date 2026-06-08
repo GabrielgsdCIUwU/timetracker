@@ -275,3 +275,40 @@ export const showToast = ToastUI.show;
 export const showConfirmModal = ModalsUI.confirm;
 export const showManualTimeModal = ModalsUI.manualTime;
 export const renderTasks = (data, callbacks) => TaskRenderer.render(data, callbacks);
+export const updateTaskTimeUI = (taskId, timeString, isActive) => {
+    const timeElement = document.getElementById(`time-${taskId}`);
+    if (timeElement) {
+        timeElement.textContent = timeString;
+        timeElement.classList.toggle('active', isActive);
+    }
+};
+export const updateSubtaskTimeUI = (subtaskId, timeString, isActive) => {
+    const subtaskTimeElement = document.getElementById(`time-sub-${subtaskId}`);
+    if (subtaskTimeElement) {
+        subtaskTimeElement.textContent = timeString;
+        subtaskTimeElement.classList.toggle('active', isActive);
+    }
+};
+export const updateDocumentTitle = (title) => {
+    document.title = title;
+};
+export const bindCreateTaskForm = (onSubmitCallback) => {
+    const form = document.getElementById('create-task-form');
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nameInput = document.getElementById('task-name');
+        const tagsInput = document.getElementById('task-tags');
+
+        const name = nameInput.value.trim();
+        if (name) {
+            const tags = tagsInput.value.split(',').map(t => t.trim().toLowerCase()).filter(t => t.length > 0);
+            
+            onSubmitCallback(name, tags);
+            
+            nameInput.value = '';
+            if (tagsInput) tagsInput.value = '';
+        }
+    });
+};
