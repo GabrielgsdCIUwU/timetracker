@@ -196,11 +196,16 @@ class TaskRenderer {
         this.#cleanupDeleted(container, tasksData);
 
         tasksData.forEach((task, index) => {
-            const existingNode = document.getElementById(`task-card-${task.id}`);
-            if (existingNode) {
-                this.#updateNode(existingNode, task, callbacks);
+            let node = document.getElementById(`task-card-${task.id}`);
+            
+            if (node) {
+                this.#updateNode(node, task, callbacks);
             } else {
-                container.appendChild(this.#createNode(task, index, callbacks));
+                node = this.#createNode(task, index, callbacks);
+            }
+
+            if (container.children[index] !== node) {
+                container.insertBefore(node, container.children[index]);
             }
         });
     }
