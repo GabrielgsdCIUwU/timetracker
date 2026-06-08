@@ -51,7 +51,7 @@ export const renderTasks = (tasksData, callbacks) => {
         if (existingNode) {
             updateTaskNodeData(existingNode, task, callbacks);
         } else {
-            const newNode = createTaskElement(task, callbacks);
+            const newNode = createTaskElement(task, index, callbacks);
             container.appendChild(newNode);
         }
     });
@@ -108,40 +108,36 @@ const updateTaskNodeData = (node, task, callbacks) => {
 };
 
 const setupActionbuttons = (node, entity, callbacks, isSubtask, parentId = null) => {
-    const btnStart = node.querySelector('.btn-start');
-    const btnPause = node.querySelector('.btn-pause');
-    const btnStop = node.querySelector('.btn-stop');
-    const btnReopen = node.querySelector('.btn-reopen');
-    const btnDelete = node.querySelector('.btn-delete');
-    const btnAddTime = node.querySelector('.btn-add-time');
-
     const isCompleted = entity.status === 'completed';
     const isActive = entity.status === 'active';
 
-    btnStart.classList.toggle('hidden', isActive || isCompleted);
-    btnPause.classList.toggle('hidden', !isActive);
-    btnStop.classList.toggle('hidden', isCompleted);
-    btnReopen.classList.toggle('hidden', !isCompleted);
-
-    const toggle = (action) => isSubtask 
+    const toggleAction = (action) => isSubtask 
         ? callbacks.onToggleSubtask(parentId, entity.id, action)
         : callbacks.onToggleTask(entity.id, action);
 
-    btnStart.onclick = () => toggle('start');
-    btnPause.onclick = () => toggle('pause');
-    btnStop.onclick = () => toggle('stop');
-    btnReopen.onclick = () => toggle('reopen');
+    const setupButton = (selector, isHidden, onClickHandler) => {
+        const btn = node.querySelector(selector);
+        if (btn) {
+            btn.classList.toggle('hidden', isHidden);
+            btn.onclick = onClickHandler;
+        }
+    };
 
-    if (btnDelete) {
-        btnDelete.onclick = () => isSubtask 
-            ? callbacks.onDeleteSubtask(parentId, entity.id)
-            : callbacks.onDeleteTask(entity.id);
-    }
+    setupButton('.btn-start', isActive || isCompleted, () => toggleAction('start'));
+    setupButton('.btn-pause', !isActive, () => toggleAction('pause'));
+    setupButton('.btn-stop', isCompleted, () => toggleAction('stop'));
+    setupButton('.btn-reopen', !isCompleted, () => toggleAction('reopen'));
 
-    if (btnAddTime && !isSubtask) {
-        btnAddTime.onclick = () => callbacks.onAddManualTime(entity.id);
-    }
-}
+    setupButton('.btn-delete', false, () => isSubtask 
+        ? callbacks.onDeleteSubtask(parentId, entity.id)
+        : callbacks.onDeleteTask(entity.id)
+    );
+
+    setupButton('.btn-add-time', false, () => isSubtask 
+        ? callbacks.onAddManualTime(parentId, entity.id)
+        : callbacks.onAddManualTime(entity.id)
+    );
+};
 
 const getStatusColor = (status) => {
     const colors = {
