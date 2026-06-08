@@ -229,7 +229,10 @@ class TaskRenderer {
         form.onsubmit = (e) => {
             e.preventDefault();
             const input = form.querySelector('.subtask-name');
-            if (input.value.trim()) callbacks.onCreateSubtask(task.id, input.value.trim());
+            if (input.value.trim()) {
+                callbacks.onCreateSubtask(task.id, input.value.trim());
+                input.value = '';
+            };
         };
 
         this.#updateNode(tpl, task, callbacks);
