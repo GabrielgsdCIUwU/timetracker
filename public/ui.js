@@ -19,50 +19,20 @@ export const showToast = (message, type = 'info') => {
     }, 3000);
 };
 
-export const showDynamicModal = (title, bodyHTML, onConfirm, confirmText = 'Confirm', isDanger = false) => {
-    const modal = document.getElementById('dynamic-modal');
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-body').innerHTML = bodyHTML;
+export const showConfirmModal = (title, message, onConfirmCallback) => {
+    const tpl = document.getElementById('tpl-modal-confirm').content.cloneNode(true);
+    tpl.querySelector('.confirm-message').textContent = message;
 
-    const confirmButton = document.getElementById('modal-btn-confirm');
-    const cancelButton = document.getElementById('modal-btn-cancel');
-
-    confirmButton.className =  `px-4 py-2 rounded-lg transition-colors ${isDanger ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'}`;
-
-    const closeModal = () => modal.classList.add('hidden');
-
-    const cloneConfirmButton = confirmButton.cloneNode(true);
-    confirmButton.parentNode.replaceChild(cloneConfirmButton, confirmButton);
-
-    cloneConfirmButton.onclick = () => {
-        onConfirm(document.getElementById('modal-body'));
-        closeModal();
-    };
-
-    cancelButton.onclick = closeModal;
-    modal.classList.remove('hidden');
-};
-
-export const showConfirmModal = (title, message, onConfirm) => {
-    const modal = document.getElementById('confirm-modal');
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-message').textContent = message;
-    
-    const btnConfirm = document.getElementById('modal-btn-confirm');
-    const btnCancel = document.getElementById('modal-btn-cancel');
-
-    const closeModal = () => modal.classList.add('hidden');
-
-    const newBtnConfirm = btnConfirm.cloneNode(true);
-    btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
-
-    newBtnConfirm.onclick = () => {
-        onConfirm();
-        closeModal();
-    };
-    
-    btnCancel.onclick = closeModal;
-    modal.classList.remove('hidden');
+    openModal({
+        title,
+        contentNode: tpl,
+        confirmText: 'Delete',
+        isDanger: true,
+        onConfirm: () => {
+            onConfirmCallback();
+            return true;
+        }
+    });
 };
 
 export const renderTasks = (tasksData, callbacks) => {
@@ -181,4 +151,62 @@ const getStatusColor = (status) => {
         completed: 'bg-indigo-900/50 text-indigo-400'
     };
     return colors[status] || colors.pending;
+};
+
+const openModal = ({title, contentNode, confirmText = 'Confirm', isDanger = false, onConfirm}) => {
+    const modal = document.getElementById('dynamic-modal');
+    document.getElementById('modal-title').textContent = title;
+    
+    const body = document.getElementById('modal-body');
+    body.innerHTML = ''; 
+    body.appendChild(contentNode); 
+    
+    const confirmButton = document.getElementById('modal-btn-confirm');
+    const cancelButton = document.getElementById('modal-btn-cancel');
+
+    const baseBtnClasses = 'px-4 py-2 rounded-lg text-white font-medium transition-colors shadow-lg';
+    confirmButton.className = isDanger 
+        ? `${baseBtnClasses} bg-rose-600 hover:bg-rose-500 shadow-rose-900/20` 
+        : `${baseBtnClasses} bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20`;
+    
+    confirmButton.textContent = confirmText;
+
+    const closeModal = () => modal.classList.add('hidden');
+
+    const duplicateConfirmButton = confirmButton.cloneNode(true);
+    confirmButton.parentNode.replaceChild(duplicateConfirmButton, confirmButton);
+
+    duplicateConfirmButton.onclick = () => {
+        if (onConfirm && onConfirm(body) !== false) closeModal();
+    };
+    
+    cancelButton.onclick = closeModal;
+    modal.classList.remove('hidden');
+};
+
+export const showManualTimeModal = (onSubmitCallback) => {
+    const tpl = document.getElementById('tpl-modal-manual-time').content.cloneNode(true);
+    
+    openModal({
+        title: 'Add Manual Time',
+        contentNode: tpl,
+        confirmText: 'Save Time',
+        isDanger: false,
+        onConfirm: (bodyNode) => {
+            const start = bodyNode.querySelector('.manual-start').value;
+            const end = bodyNode.querySelector('.manual-end').value;
+            
+            if (!start || !end) {
+                showToast('Both dates are required', 'error'); 
+                return false; 
+            }
+            if (new Date(start) >= new Date(end)) {
+                showToast('Start time must be before end time', 'error');
+                return false; 
+            }
+            
+            onSubmitCallback(new Date(start).toISOString(), new Date(end).toISOString());
+            return true; 
+        }
+    });
 };
