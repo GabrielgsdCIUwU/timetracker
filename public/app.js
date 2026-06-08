@@ -87,11 +87,11 @@ class AppController {
                 const subTimeMs = TimeUtils.calculateTimeFromEntries(subtask.timeEntries);
                 totalSubTime += subTimeMs;
 
-                const subTimeEl = document.getElementById(`time-sub-${subtask.id}`);
-                if (subTimeEl) {
-                    subTimeEl.textContent = TimeUtils.formatTime(subTimeMs);
-                    subTimeEl.classList.toggle('active', subtask.status === 'active');
-                }
+                ui.updateSubtaskTimeUI(
+                    subtask.id,
+                    TimeUtils.formatTime(subTimeMs),
+                    subtask.status === 'active'
+                );
 
                 if (subtask.status === 'active' && !activeTaskInfo) {
                     activeTaskInfo = { name: subtask.name, time: subTimeMs };
@@ -99,41 +99,29 @@ class AppController {
             });
 
             const grandTotal = taskOwnTime + totalSubTime;
-            const timeDisplay = document.getElementById(`time-${task.id}`);
-
-            if (timeDisplay) {
-                timeDisplay.textContent = TimeUtils.formatTime(grandTotal);
-                timeDisplay.classList.toggle('active', task.status === 'active');
-            }
+            
+            ui.updateTaskTimeUI(
+                task.id,
+                TimeUtils.formatTime(grandTotal),
+                task.status === 'active'
+            );
 
             if (task.status === 'active' && !activeTaskInfo) {
                 activeTaskInfo = { name: task.name, time: grandTotal };
             }
         });
 
-        document.title = activeTaskInfo
+        const newTitle = activeTaskInfo
             ? `[${TimeUtils.formatTime(activeTaskInfo.time)}] ${activeTaskInfo.name}`
             : 'ChronoFlow - Advanced Time Tracker';
+        
+        ui.updateDocumentTitle(newTitle);
     }
 
     #setupEventListeners() {
-        const form = document.getElementById('create-task-form');
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const nameInput = document.getElementById('task-name');
-                const tagsInput = document.getElementById('task-tags');
-
-                const name = nameInput.value.trim();
-                if (name) {
-                    const tags = tagsInput.value.split(',').map(t => t.trim().toLowerCase()).filter(t => t.length > 0);
-                    this.#executeAction(ApiClient.createTask({ name, tags }), 'Task created successfully');
-
-                    nameInput.value = '';
-                    if (tagsInput) tagsInput.value = '';
-                }
-            });
-        }
+        ui.bindCreateTaskForm((name, tags) => {
+            this.#executeAction(ApiClient.createTask({name, tags}), 'Task created successfully');
+        });
     }
 }
 
