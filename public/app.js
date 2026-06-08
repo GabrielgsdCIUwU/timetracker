@@ -42,6 +42,18 @@ const uiCallbacks = {
         ui.showConfirmModal('Delete Task', 'Are you sure you want to permanently delete this task?', () => {
             executeAction(api.deleteTask(taskId), 'Task deleted');
         });
+    },
+
+    onDeleteSubtask: (taskId, subtaskId) => {
+        ui.showConfirmModal('Delete Subtask', 'Delete this subtask permanently?', () => {
+            executeAction(api.deleteSubtask(taskId, subtaskId), 'Subtask deleted');
+        });
+    },
+
+    onAddManualTime: (taskId, subtaskId = null) => {
+        ui.showManualTimeModal((startIso, endIso) => {
+            executeAction(api.addManualTime(taskId, subtaskId, startIso, endIso), 'Time added successfully');
+        });
     }
 }
 
@@ -89,10 +101,16 @@ const updateAllTimers = () => {
 //region init
 document.getElementById('create-task-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const input = document.getElementById('task-name');
-    if (input.value.trim()) {
-        executeAction(api.createTask(input.value.trim()), 'Task created successfully');
-        input.value = '';
+    const nameInput = document.getElementById('task-name');
+    const tagsInput = document.getElementById('task-tags');
+    
+    const name = nameInput.value.trim();
+    if (name) {
+        const tags = tagsInput.value.split(',').map(t => t.trim().toLowerCase()).filter(t => t.length > 0);
+        executeAction(api.createTask({ name, tags }), 'Task created successfully');
+        
+        nameInput.value = '';
+        if(tagsInput) tagsInput.value = '';
     }
 });
 
