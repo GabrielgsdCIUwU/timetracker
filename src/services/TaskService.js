@@ -6,11 +6,12 @@ export default class TaskService {
         this.repository = taskRepository;
     }
 
-    async getAllTasks() {
-        const tasks = await this.repository.getAllTasks();
-        // Podemos mapear las tareas para agregar un "totalTimeCalculated" para conveniencia si es necesario,
-        // pero la regla de negocio principal dice que se calcula al mostrar. El frontend hará esto también
-        // para su cronómetro, pero es buena práctica devolver el estado coherente.
+    async getAllTasks(tag = null) {
+        let tasks = await this.repository.getAllTasks();
+        
+        if (tag) {
+            tasks = tasks.filter(t => t.tags?.includes(tag.toLowerCase()));
+        }
         return tasks.map(task => this._enrichTaskWithCalculatedTime(task));
     }
 
