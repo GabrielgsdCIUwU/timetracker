@@ -5,6 +5,7 @@ import { TimeUtils } from './utils.js';
 class AppController {
     #tasksData = [];
     #timerInterval = null;
+    #currentTagFilter = null;
 
     init() {
         this.#setupEventListeners();
@@ -21,10 +22,16 @@ class AppController {
 
     async #loadTasks(showNotification = false) {
         try {
-            const data = await ApiClient.fetchTasks();
+            const data = await ApiClient.fetchTasks(this.#currentTagFilter);
             this.#tasksData = data.reverse();
 
             ui.renderTasks(this.#tasksData, this.#getUiCallbacks());
+
+            ui.updateFilterUI(this.#currentTagFilter, () => {
+                this.#currentTagFilter = null;
+                this.#loadTasks();
+            });
+
             this.#updateAllTimers();
 
             if (showNotification) ui.showToast('Data synced correctly', 'success');
@@ -72,7 +79,24 @@ class AppController {
                 ui.showManualTimeModal((startIso, endIso) => {
                     this.#executeAction(ApiClient.addManualTime(taskId, subtaskId, startIso, endIso), 'Time added successfully');
                 });
-            }
+            },
+
+            onEditTask: (task) => {
+                ui.showEditModal(task, false, (name, tags) => {
+                    this.#executeAction(ApiClient.updateTask(task.id, { name, tags }), 'Task updated successfully');
+                });
+            },
+
+            onEditSubtask: (taskId, subtask) => {
+                ui.showEditModal(subtask, true, (name) => {
+                    this.#executeAction(ApiClient.updateSubtask(taskId, subtask.id, { name }), 'Subtask updated successfully');
+                });
+            },
+
+            onFilterTag: (tag) => {
+                this.#currentTagFilter = tag;
+                this.#loadTasks();
+            },
         }
     }
 
