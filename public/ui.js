@@ -156,6 +156,46 @@ class ModalsUI {
             onConfirm: (bodyNode) => ManualTimeController.handleSubmit(bodyNode, onSubmitCallback)
         });
     }
+
+    static edit(entity, isSubtask, onConfirmCallback) {
+        const tpl = UIUtils.cloneTemplate('tpl-modal-edit');
+        const nameInput = tpl.querySelector('.edit-name');
+        const tagsContainer = tpl.querySelector('.edit-tags-container');
+        const tagsInput = tpl.querySelector('.edit-tags');
+
+        nameInput.value = entity.name;
+
+        if (isSubtask) {
+            tagsContainer.classList.add('hidden');
+        } else {
+            tagsInput.value = entity.tags ? entity.tags.join(', ') : '';
+        }
+
+        ModalCore.open({
+            title: isSubtask ? 'Edit Subtask' : 'Edit Task',
+            contentNode: tpl,
+            confirmText: 'Save Changes',
+            isDanger: false,
+            onConfirm: (bodyNode) => {
+                const newName = bodyNode.querySelector('.edit-name').value.trim();
+                let newTags = [];
+                if (!isSubtask) {
+                    newTags = bodyNode.querySelector('.edit-tags').value
+                        .split(',')
+                        .map(t => t.trim().toLowerCase())
+                        .filter(t => t.length > 0);
+                }
+
+                if (!newName) {
+                    ToastUI.show('Name cannot be empty', 'error');
+                    return false;
+                }
+
+                onConfirmCallback(newName, newTags);
+                return true;
+            }
+        })
+    }
 }
 
 //region ActionBinder
@@ -178,6 +218,11 @@ class ActionBinder {
 
         this.#setupBtn(node, '.btn-add-time', false, () => isSubtask 
             ? callbacks.onAddManualTime(parentId, entity.id) : callbacks.onAddManualTime(entity.id));
+        
+        this.#setupBtn(node, '.btn-edit', false, () => isSubtask
+            ? callbacks.onEditSubtask(parentId, entity)
+            : callbacks.onEditTask(entity)
+        );
     }
 
     static #setupBtn(parentNode, selector, isHidden, onClick) {
@@ -247,8 +292,15 @@ class TaskRenderer {
         badge.textContent = task.status;
 
         node.querySelector('.task-tags').innerHTML = task.tags?.map(tag => 
-            `<span class="bg-indigo-900/30 text-indigo-300 text-xs px-2 py-1 rounded-md border border-indigo-500/30">#${tag}</span>`
+            `<button class="tag-pill bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-xs px-2 py-1 rounded-md border border-indigo-500/30 transition-colors cursor-pointer" data-tag="${tag}">#${tag}</button>`
         ).join('') || '';
+
+        node.querySelectorAll('.tag-pill').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                callbacks.onFilterTag(btn.dataset.tag);
+            };
+        });
 
         ActionBinder.bind(node, task, callbacks, false);
         this.#renderSubtasks(node, task, callbacks);
@@ -314,4 +366,18 @@ export const bindCreateTaskForm = (onSubmitCallback) => {
             if (tagsInput) tagsInput.value = '';
         }
     });
+};
+export const showEditModal = ModalsUI.edit;
+export const updateFilterUI = (tag, onClear) => {
+    const container = document.getElementById('active-filter-container');
+    const tagText = document.getElementById('active-filter-tag');
+    const clearBtn = document.getElementById('btn-clear-filter');
+
+    if (tag) {
+        tagText.textContent = `#${tag}`;
+        container.classList.remove('hidden');
+        clearBtn.onclick = onClear;
+    } else {
+        container.classList.add('hidden');
+    }
 };
