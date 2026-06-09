@@ -7,7 +7,8 @@ const taskService = new TaskService(taskRepository);
 
 export default class TaskController {
     static getTasks = asyncHandler(async (req, res) => {
-        const tasks = await taskService.getAllTasks();
+        const { tag } = req.query;
+        const tasks = await taskService.getAllTasks(tag);
         res.json(tasks);
     });
 
