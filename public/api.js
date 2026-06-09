@@ -27,8 +27,9 @@ export class ApiClient {
         return this.#handleResponse(response);
     }
 
-    static fetchTasks() {
-        return this.#request();
+    static fetchTasks(tag = null) {
+        const query = tag ? `?tag=${encodeURIComponent(tag)}` : '';
+        return this.#request(query);
     }
 
     static createTask(data) {
