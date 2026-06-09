@@ -1,7 +1,7 @@
 import express from 'express';
 import TaskController from '../controllers/TaskController.js';
 import { validateResource } from '../middlewares/validateResource.js';
-import { addSubtaskSchema, createTaskSchema, manualTimeSchema, updateTaskSchema } from '../schemas/taskSchemas.js';
+import { addSubtaskSchema, createTaskSchema, manualTimeSchema, updateTaskSchema, updateSubtaskSchema } from '../schemas/taskSchemas.js';
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.post('/:id/subtasks/:subtaskId/start', TaskController.startSubtask);
 router.post('/:id/subtasks/:subtaskId/pause', TaskController.pauseSubtask);
 router.post('/:id/subtasks/:subtaskId/stop', TaskController.stopSubtask);
 router.post('/:id/subtasks/:subtaskId/reopen', TaskController.reopenSubtask);
-router.put('/:id/subtasks/:subtaskId', TaskController.updateSubtask);
+router.put('/:id/subtasks/:subtaskId', validateResource(updateSubtaskSchema), TaskController.updateSubtask);
 router.delete('/:id/subtasks/:subtaskId', TaskController.deleteSubtask);
 
 // Tiempo Manual
