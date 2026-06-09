@@ -24,6 +24,11 @@
             </form>
         </section>
 
+        <div id="active-filter-container" class="hidden mb-4 flex items-center justify-between bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg">
+            <span class="text-indigo-300 text-sm">Showing tasks for: <strong id="active-filter-tag"></strong></span>
+            <button id="btn-clear-filter" class="text-xs text-indigo-400 hover:text-indigo-300">Clear Filter ✖</button>
+        </div>
+
         <section id="tasks-container" class="space-y-6"></section>
     </div>
 
@@ -106,6 +111,7 @@
                     <button class="btn-icon btn-stop text-rose-400" title="Complete">⏹</button>
                     <button class="btn-icon btn-reopen text-blue-400 hidden" title="Reopen">↺</button>
                     <button class="btn-icon btn-add-time text-slate-300" title="Add Manual Time">⏱</button>
+                    <button class="btn-icon btn-edit text-slate-400 hover:text-indigo-400" title="Edit">✏️</button>
                     <button class="btn-icon btn-delete text-slate-400 hover:text-rose-400" title="Delete">🗑</button>
                 </div>
             </div>
@@ -133,11 +139,25 @@
                 <button class="btn-icon btn-stop text-rose-400 w-6 h-6 text-xs">⏹</button>
                 <button class="btn-icon btn-reopen text-blue-400 hidden w-6 h-6 text-xs">↺</button>
                 <button class="btn-icon btn-add-time text-slate-300 w-6 h-6 text-xs" title="Add Manual Time">⏱</button>
+                <button class="btn-icon btn-edit text-slate-400 hover:text-indigo-400 w-6 h-6 text-xs" title="Edit">✏️</button>
                 <button class="btn-icon btn-delete text-slate-400 hover:text-rose-400 w-6 h-6 text-xs">🗑</button>
             </div>
         </div>
     </template>
-
+    
+    <template id="tpl-modal-edit">
+        <div class="flex flex-col gap-4 text-left animate-fade-in-down">
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Name</label>
+                <input type="text" class="edit-name w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500" required>
+            </div>
+            <div class="edit-tags-container">
+                <label class="block text-sm font-medium text-slate-400 mb-1">Tags (comma separated)</label>
+                <input type="text" class="edit-tags w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+        </div>
+    </template>
+    
     <script type="module" src="app.js"></script>
 </body>
 </html>
